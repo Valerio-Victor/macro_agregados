@@ -1,0 +1,1260 @@
+---
+title: 'AGREGADOS MACROECONÔMICOS'
+subtitle: 'Macroeconomia </br> (ADM03F)'
+author: 'Autor: Victor Valerio'
+date: 'Última atualização: `r format(Sys.Date(),"%d-%m-%Y")`'
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: xaringan-themer.css
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: 16:9
+---
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+# PACOTES UTILIZADOS: ----
+library(xaringanthemer)
+library(xaringanExtra)
+
+# CONFIGURAÇÃO DA FONTE: ----
+style_mono_light(base_color = '#1c5253',
+                  text_font_size = '30px',
+                  header_h1_font_size = '3rem',
+                  header_h2_font_size = '2rem',
+                  header_h3_font_size = '1.5rem')
+
+# CONFIGURAÇÃO PADRÃO CHUNK: ----
+knitr::opts_chunk$set(echo = F,
+                      cache = T,
+                      results = 'asis', 
+                      warning = F, 
+                      message = F, 
+                      error = F, 
+                      fig.align = 'center', 
+                      out.width = '100%')
+
+# RECURSOS DO SLIDE: ----
+use_scribble()
+use_search(show_icon = TRUE)
+```
+
+```{r}
+# PACOTES NECESSÁRIOS
+library(ggplot2)
+library(magrittr, include.only = '%>%')
+
+# IMPORTAÇÃO DOS DADOS:
+agregados_macroeconomicos_id <- sidrar::get_sidra(
+  api = '/t/1621/n1/all/v/all/p/all/c11255/90707,93404,93405,93406,93407,93408/d/v584%202') %>%
+  janitor::clean_names() %>% 
+  dplyr::mutate(date = lubridate::yq(trimestre_codigo), 
+                format = '%Y-%m') %>% 
+  dplyr::select(date, valor, setores_e_subsetores) %>%
+  dplyr::mutate(setores_e_subsetores = dplyr::case_when(
+    setores_e_subsetores == 'PIB a preços de mercado' ~ 'Y',
+    setores_e_subsetores == 'Despesa de consumo das famílias' ~ 'C',
+    setores_e_subsetores == 'Formação bruta de capital fixo' ~ 'I',
+    setores_e_subsetores == 'Despesa de consumo da administração pública' ~ 'G',
+    setores_e_subsetores == 'Exportação de bens e serviços' ~ 'X',
+    setores_e_subsetores == 'Importação de bens e serviços (-)' ~ 'M')) 
+
+# ARRUMAÇÃO DOS DADOS:
+agregados_macroeconomicos <- agregados_macroeconomicos_id %>%
+  dplyr::rename('Componente' = setores_e_subsetores,
+                'Data' = date, 
+                'Valor' = valor) 
+```  
+
+## TÓPICOS ABORDADOS
+
+  ---
+
+<br>
+
+- [**Identidades Macroeconômicas**](#introducao)
+
+
+- [**Produto Agregado e Produto Interno Bruto (PIB)**](#pib)
+
+
+- [**Fluxo Circular da Renda**](#fcr)
+
+---
+class: inverse, center, middle 
+name: introducao
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+**CONCEITOS**
+  
+  
+- Para entender o funcionamento básico da economia de um país é útil iniciar a apresentação por meio 
+da definição de 3 conceitos iniciais da macroeconomia, são eles:
+  
+
+  - **PRODUTO AGREGADO** (OU OFERTA AGREGADA);
+  
+  - **RENDA AGREGADA**;
+  
+  - **DEMANDA AGREGADA** (OU DESPESA AGREGADA/CONSUMO AGREGADO).
+  
+  
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+- **PRODUTO AGREGADO**: Corresponde a **soma de valores (R$)** de todos os **bens (ou serviços) finais** 
+produzidos em um determinado **país** em um determinado **período de tempo** (**variável de fluxo**).
+
+
+$$ Produto \ Agregado = \sum_{x = 1}^{n}P_iQ_i$$
+$P_i =$ Preço do **bem (ou serviço) final** i;
+  
+$Q_i =$ Quantidade produzida do **bem (ou serviço) final** i;
+  
+$i =$ **bem (ou serviço) final** $(i = 1, 2,..., n)$
+  
+  
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+- **BEM (OU SERVIÇO) FINAL**: São bens e serviços que **não são utilizados** em nenhuma etapa de um 
+processo de produção, isto é, não são insumos de produção. 
+
+- **BEM (OU SERVIÇO) INTERMEDIÁRIO**: São bens e serviços que **são utilizados** em algum processo de produção (mercantil), isto é, são insumos de produção. 
+
+- Para entender melhor a definição de produto agregado, bens finais e bens intermediários, vamos 
+partir de um exemplo teórico de uma economia que produz apenas um bem final: o pão.
+
+
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+
+**PREMISSAS DO EXEMPLO TEÓRICA**
+
+
+  - **3 Processos Produtivos**: Produção de Trigo, Produção de Farinha de Trigo e 
+  Produção de Pão;
+  
+  - **Bens Intermediários**: Trigo e Farinha (são insumos de produção);
+  
+  - **Bens Finais**: Pão (não é insumo de produção).
+  
+  
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+```{r , results = 'asis', echo = F, warning = F, message = F, error = F, fig.align ='center', out.width = '100%'}
+
+
+library(magrittr)
+
+
+library(kableExtra)
+
+
+cronograma <- data.frame(
+  
+  a = c('TRIGO', 'FARINHA', 'PÃO'),
+  
+  b = c('R$ 0', 'R$ 15', 'R$ 35'),
+  
+  c = c('R$ 15', 'R$ 35', 'R$ 60'),
+  
+  d = c('R$ 15', 'R$ 20', 'R$ 25'))
+
+knitr::kable(cronograma, 
+             
+             escape = FALSE,
+    
+             format = 'html',
+             
+             col.names = c('PRODUTO', 'PREÇO DO INSUMO (custo de produção)', 
+                           
+                           'PREÇO DO PRODUTO (preço de venda)', 
+                           
+                           'VALOR ADICIONADO (valor agregado)'),
+             
+             align = c('c', 'c', 'c', 'c')) %>%
+  
+  kable_styling(bootstrap_options = 'striped')
+  
+
+```
+
+
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+
+```{r , results = 'asis', echo = F, warning = F, message = F, error = F, fig.align ='center', out.width = '100%'}
+
+
+library(magrittr)
+
+
+library(kableExtra)
+
+
+cronograma <- data.frame(
+  
+  a = c('TRIGO', 'FARINHA', 'PÃO'),
+  
+  b = c('R$ 0', 'R$ 15', 'R$ 35'),
+  
+  c = c('R$ 15', 'R$ 35', 'R$ 60'),
+  
+  d = c('R$ 15', 'R$ 20', 'R$ 25'))
+
+knitr::kable(cronograma, 
+             
+             escape = FALSE,
+    
+             format = 'html',
+             
+             col.names = c('PRODUTO', 'PREÇO DO INSUMO (custo de produção)', 
+                           
+                           'PREÇO DO PRODUTO (preço de venda)', 
+                           
+                           'VALOR ADICIONADO (valor agregado)'),
+             
+             align = c('c', 'c', 'c', 'c')) %>%
+  
+  kable_styling(bootstrap_options = 'striped')
+  
+
+```
+
+  - Como existem 3 processos produtivos, também existem **3 custos de produção** 
+  e 3 **preços de venda** (um para cada processo produtivo), sendo que, o custo 
+  de produção de um processo de produção é igual ao preço de venda do processo
+  de produção anterior (ou processo de produção fornecedor);
+
+
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+
+```{r , results = 'asis', echo = F, warning = F, message = F, error = F, fig.align ='center', out.width = '100%'}
+
+
+library(magrittr)
+
+
+library(kableExtra)
+
+
+cronograma <- data.frame(
+  
+  a = c('TRIGO', 'FARINHA', 'PÃO'),
+  
+  b = c('R$ 0', 'R$ 15', 'R$ 35'),
+  
+  c = c('R$ 15', 'R$ 35', 'R$ 60'),
+  
+  d = c('R$ 15', 'R$ 20', 'R$ 25'))
+
+knitr::kable(cronograma, 
+             
+             escape = FALSE,
+    
+             format = 'html',
+             
+             col.names = c('PRODUTO', 'PREÇO DO INSUMO (custo de produção)', 
+                           
+                           'PREÇO DO PRODUTO (preço de venda)', 
+                           
+                           'VALOR ADICIONADO (valor agregado)'),
+             
+             align = c('c', 'c', 'c', 'c')) %>%
+  
+  kable_styling(bootstrap_options = 'striped')
+  
+
+```
+  
+  - Em cada processo de produção, a **diferença entre o preço de venda e o custo 
+  de produção** gera o respectivo **valor adicionado** (ou valor agregado).
+  
+
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+
+```{r , results = 'asis', echo = F, warning = F, message = F, error = F, fig.align ='center', out.width = '100%'}
+
+
+library(magrittr)
+
+
+library(kableExtra)
+
+
+cronograma <- data.frame(
+  
+  a = c('TRIGO', 'FARINHA', 'PÃO'),
+  
+  b = c('R$ 0', 'R$ 15', 'R$ 35'),
+  
+  c = c('R$ 15', 'R$ 35', 'R$ 60'),
+  
+  d = c('R$ 15', 'R$ 20', 'R$ 25'))
+
+knitr::kable(cronograma, 
+             
+             escape = FALSE,
+    
+             format = 'html',
+             
+             col.names = c('PRODUTO', 'PREÇO DO INSUMO (custo de produção)', 
+                           
+                           'PREÇO DO PRODUTO (preço de venda)', 
+                           
+                           'VALOR ADICIONADO (valor agregado)'),
+             
+             align = c('c', 'c', 'c', 'c')) %>%
+  
+  kable_styling(bootstrap_options = 'striped')
+  
+
+```
+
+  - O valor de venda de um processo de produção é igual a soma entre o custo de 
+  produção e o valor adicionado do respectivo processo;
+  
+
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+
+```{r , results = 'asis', echo = F, warning = F, message = F, error = F, fig.align ='center', out.width = '100%'}
+
+
+library(magrittr)
+
+
+library(kableExtra)
+
+
+cronograma <- data.frame(
+  
+  a = c('TRIGO', 'FARINHA', 'PÃO'),
+  
+  b = c('R$ 0', 'R$ 15', 'R$ 35'),
+  
+  c = c('R$ 15', 'R$ 35', 'R$ 60'),
+  
+  d = c('R$ 15', 'R$ 20', 'R$ 25'))
+
+knitr::kable(cronograma, 
+             
+             escape = FALSE,
+    
+             format = 'html',
+             
+             col.names = c('PRODUTO', 'PREÇO DO INSUMO (custo de produção)', 
+                           
+                           'PREÇO DO PRODUTO (preço de venda)', 
+                           
+                           'VALOR ADICIONADO (valor agregado)'),
+             
+             align = c('c', 'c', 'c', 'c')) %>%
+  
+  kable_styling(bootstrap_options = 'striped')
+  
+
+```
+ 
+  - Por sua vez, o custo de produção de um processo produtivo é igual ao valor 
+  de venda do processo de produção anterior (ou do processo de produção do 
+  fornecedor). Assim, o valor de venda de um produto já leva em consideração os 
+  valores de venda dos processos produtivos anteriores;
+
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+
+```{r , results = 'asis', echo = F, warning = F, message = F, error = F, fig.align ='center', out.width = '100%'}
+
+
+library(magrittr)
+
+
+library(kableExtra)
+
+
+cronograma <- data.frame(
+  
+  a = c('TRIGO', 'FARINHA', 'PÃO'),
+  
+  b = c('R$ 0', 'R$ 15', 'R$ 35'),
+  
+  c = c('R$ 15', 'R$ 35', 'R$ 60'),
+  
+  d = c('R$ 15', 'R$ 20', 'R$ 25'))
+
+knitr::kable(cronograma, 
+             
+             escape = FALSE,
+    
+             format = 'html',
+             
+             col.names = c('PRODUTO', 'PREÇO DO INSUMO (custo de produção)', 
+                           
+                           'PREÇO DO PRODUTO (preço de venda)', 
+                           
+                           'VALOR ADICIONADO (valor agregado)'),
+             
+             align = c('c', 'c', 'c', 'c')) %>%
+  
+  kable_styling(bootstrap_options = 'striped')
+  
+
+```
+  
+  - Por este motivo, o Produto Agregado não soma os valores de venda de cada 
+  produto, evitando o **erro da dupla contagem**.
+  
+  
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+
+```{r , results = 'asis', echo = F, warning = F, message = F, error = F, fig.align ='center', out.width = '100%'}
+
+
+library(magrittr)
+
+
+library(kableExtra)
+
+
+cronograma <- data.frame(
+  
+  a = c('TRIGO', 'FARINHA', 'PÃO'),
+  
+  b = c('R$ 0', 'R$ 15', 'R$ 35'),
+  
+  c = c('R$ 15', 'R$ 35', 'R$ 60'),
+  
+  d = c('R$ 15', 'R$ 20', 'R$ 25'))
+
+knitr::kable(cronograma, 
+             
+             escape = FALSE,
+    
+             format = 'html',
+             
+             col.names = c('PRODUTO', 'PREÇO DO INSUMO (custo de produção)', 
+                           
+                           'PREÇO DO PRODUTO (preço de venda)', 
+                           
+                           'VALOR ADICIONADO (valor agregado)'),
+             
+             align = c('c', 'c', 'c', 'c')) %>%
+  
+  kable_styling(bootstrap_options = 'striped')
+  
+
+```
+
+
+- No exemplo do pão, ao se somar os valores totais de produção de cada processo 
+produtivo, tem-se que O valor total do processo produtivo trigo é somado três vezes
+e o valor total do processo produtivo da farinha é somado duas vezes;
+
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+
+```{r , results = 'asis', echo = F, warning = F, message = F, error = F, fig.align ='center', out.width = '100%'}
+
+
+library(magrittr)
+
+
+library(kableExtra)
+
+
+cronograma <- data.frame(
+  
+  a = c('TRIGO', 'FARINHA', 'PÃO'),
+  
+  b = c('R$ 0', 'R$ 15', 'R$ 35'),
+  
+  c = c('R$ 15', 'R$ 35', 'R$ 60'),
+  
+  d = c('R$ 15', 'R$ 20', 'R$ 25'))
+
+knitr::kable(cronograma, 
+             
+             escape = FALSE,
+    
+             format = 'html',
+             
+             col.names = c('PRODUTO', 'PREÇO DO INSUMO (custo de produção)', 
+                           
+                           'PREÇO DO PRODUTO (preço de venda)', 
+                           
+                           'VALOR ADICIONADO (valor agregado)'),
+             
+             align = c('c', 'c', 'c', 'c')) %>%
+  
+  kable_styling(bootstrap_options = 'striped')
+  
+
+```
+
+
+- Este é, justamente, o exemplo já explicado de **erro de dupla contagem**.
+
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+
+```{r , results = 'asis', echo = F, warning = F, message = F, error = F, fig.align ='center', out.width = '100%'}
+
+
+library(magrittr)
+
+
+library(kableExtra)
+
+
+cronograma <- data.frame(
+  
+  a = c('TRIGO', 'FARINHA', 'PÃO'),
+  
+  b = c('R$ 0', 'R$ 15', 'R$ 35'),
+  
+  c = c('R$ 15', 'R$ 35', 'R$ 60'),
+  
+  d = c('R$ 15', 'R$ 20', 'R$ 25'))
+
+knitr::kable(cronograma, 
+             
+             escape = FALSE,
+    
+             format = 'html',
+             
+             col.names = c('PRODUTO', 'PREÇO DO INSUMO (custo de produção)', 
+                           
+                           'PREÇO DO PRODUTO (preço de venda)', 
+                           
+                           'VALOR ADICIONADO (valor agregado)'),
+             
+             align = c('c', 'c', 'c', 'c')) %>%
+  
+  kable_styling(bootstrap_options = 'striped')
+  
+
+```
+
+
+- Também podemos depreender que o valor total do processo produtivo do único bem final 
+do exemplo, o pão, já leva em consideração todos os valores adicionados em cada processo produtivo 
+(sendo que, no caso do trigo, o valor adicionado é o próprio valor de venda pois não há custo de 
+produção);
+
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+
+```{r , results = 'asis', echo = F, warning = F, message = F, error = F, fig.align ='center', out.width = '100%'}
+
+
+library(magrittr)
+
+
+library(kableExtra)
+
+
+cronograma <- data.frame(
+  
+  a = c('TRIGO', 'FARINHA', 'PÃO'),
+  
+  b = c('R$ 0', 'R$ 15', 'R$ 35'),
+  
+  c = c('R$ 15', 'R$ 35', 'R$ 60'),
+  
+  d = c('R$ 15', 'R$ 20', 'R$ 25'))
+
+knitr::kable(cronograma, 
+             
+             escape = FALSE,
+    
+             format = 'html',
+             
+             col.names = c('PRODUTO', 'PREÇO DO INSUMO (custo de produção)', 
+                           
+                           'PREÇO DO PRODUTO (preço de venda)', 
+                           
+                           'VALOR ADICIONADO (valor agregado)'),
+             
+             align = c('c', 'c', 'c', 'c')) %>%
+  
+  kable_styling(bootstrap_options = 'striped')
+  
+
+```
+
+
+- Assim, ao mesmo tempo que todas as contribuições para produção em cada processo produtivo são 
+consideradas, não incorremos no erro da dupla contagem. Neste contexto, acabamos de representar uma nova **abordagem para cálculo do produto agregado**, calculada a partir da **soma do 
+valor adicionado em cada processo de produção**.
+  
+  
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+
+- Em uma economia real não existem apenas três processos, mas uma **infinidade processos de produção
+de diferentes setores econômicos**. Isto pode dificultar a definição de qual produto é intermediário 
+e qual produto é final;
+
+<br>
+
+- Uma maneira alternativa de mensurar o **Produto Agregado** é utilizar a referida **soma dos valor 
+adicionados (ou, valores agregados)**.
+
+
+
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+- Uma vez entendido o conceito de produto agregado, pode-se passar à explicação de renda agregada;
+
+- **Renda Agregada: Corresponde a soma de valores (R$) de todas as remuneração dos fatores de
+produção em uma determinada economia**;
+
+- Inicialmente este conceito é pouco esclarecedor e uma revisão de algumas definições microeconômicas 
+são necessárias para seu melhor entendimento.
+
+---
+class: inverse
+<div style="text-align: justify">
+
+
+## CONCEITO COMPLEMENTAR
+
+  ---
+
+
+- Os FATORES DE PRODUÇÃO são os recursos (ou insumos) utilizados no processo de produção, exemplo:
+
+<br>
+
+_Para produzir, o dono de uma empresa precisa escolher um local para realizar as atividades (esse 
+local é um recurso), pessoas para executar as atividades (esses trabalhadores são recursos), o dono 
+da empresa pode realizar um empréstimo para comprar uma máquina (este dinheiro é um recurso). Estas 
+são escolhas mínimas de um empresário (e sua administração também é um recurso)._
+
+
+---
+class: inverse
+<div style="text-align: justify">
+
+
+## CONCEITO COMPLEMENTAR
+
+  ---
+
+- Por sua vez, o detentores dos recursos (ou insumos) devem ser remunerados pela utilização e a 
+remuneração de cada fato de produção recebe um nome diferente, são eles:
+
+    - A remuneração pelo USO DO LOCAL (capital físico) é o ALUGUEL;
+    - A remuneração pelo USO DO TRABALHO é o SALÁRIO;
+    - A remuneração pelo USO DO EMPRÉSTIMO (capital monetário) é o JUROS;
+    - A remuneração pelo USO DA ADMINISTRAÇÃO (RISCO) é o LUCRO.
+
+
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+
+- **Renda Agregada (RA)**: soma de valores (R$) de 
+todas as remuneração dos fatores de produção em uma determinada economia;
+  
+  
+$$RA = \sum_{}^{}Aluguéis + \sum_{}^{}Salários + \sum_{}^{}Juros + \sum_{}^{}Lucros$$
+$Aluguéis$: remuneração pelo uso do capital físico;
+  
+$Salários$: remuneração pelo uso do trabalho;
+  
+$Juros$: remuneração pelo uso do capital monetário;
+  
+$Lucros$: remuneração pelo uso da administração.
+  
+  
+---
+<div style="text-align: justify">
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+- Como se pode depreender, o valor agregado em um processo de produção corresponde ao valor 
+necessário para remunerar todos os envolvidos na etapa produtiva;
+
+
+- Portanto, a **renda de cada processo de produção é igual ao valor agregado em cada processo de 
+produção**;
+
+
+- Com base no descrito, a associação entre produto e renda se torna imediata.
+
+
+---
+<div style="text-align: justify">
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+- **PRODUTO AGREGADO (Abordagem 1)**: Soma de todos os valores (R$) dos bens finais produzidos em uma 
+economia em um período;
+
+
+- **PRODUTO AGREGADO (Abordagem 2): Soma de todos os valores agregados (R$) em uma economia em um 
+período**;
+
+
+- **RENDA AGREGADA (Abordagem 1)**: Soma de valores (R$) de todas as remuneração dos fatores de 
+produção em uma determinada economia;
+
+
+- **RENDA AGREGADA (Abordagem 2): Soma de todos os valores agregados (R$) em uma economia em um 
+período**;
+
+
+---
+class: inverse, center, middle 
+
+## PRODUTO AGREGADO <br> = <br> RENDA AGREGADA
+
+---
+<div style="text-align: justify">
+
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+
+- Agora, basta compreendermos o último conceito inicial de macroeconomia, mais especificamente, o 
+de **demanda agregada**;
+
+
+- **Demanda Agregada corresponde a soma dos valores (R$) de todos os consumos de bens finais realizados
+em uma economia em determinado período de tempo;**
+
+
+- Este conceito é imediato e também **pode ser associado aos conceitos de produto agregado e renda 
+agregada**.
+
+
+---
+<div style="text-align: justify">
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+
+- Para **consumir** um bem (ou serviço) final é necessário **alocar a renda** para pagar a transação.
+
+  - Os donos de locais conseguem pagar o consumo com as rendas de aluguéis;
+  
+	- Os trabalhadores conseguem pagar o consumo com as rendas de salários;
+	
+	- Os banqueiros conseguem pagar o consumo com as rendas de juros;
+	
+	- Os empresários conseguem pagar o consumo com as rendas de lucros.
+	
+	
+---
+<div style="text-align: justify">
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+
+- Supondo que toda a renda conseguida seja alocada em consumo de bens finais, 
+tem-se a principal identidade contábil macroeconômica (não se trata de uma relação 
+de causa e efeito, mas apenas de uma identidade de valores):
+
+---
+class:inverse, center, middle
+
+## PRODUTO AGREGADO <br> = <br> RENDA AGREGADA <br> = <br> DEMANDA AGREGADA
+
+---
+<div style="text-align: justify">
+
+## IDENTIDADES MACROECONÔMICAS
+
+  ---
+
+- Devido a identidade contábil, pode-se afirmar que é possível mensurar o produto agregado por meio 
+de 3 óticas: 
+
+  - **Ótica do Produto**: Soma dos bens finais produzidos em um país em um determinado período de tempo;
+  
+  - **Ótica da Renda**: Soma das rendas obtidos a partir do uso dos fatores de produção de um país em 
+  um determinado período de tempo;
+  
+  - **Ótica da Demanda**: soma de todos os consumos de bens e serviços finais de uma economia em um 
+  determinado período de tempo. 
+  
+  
+---
+class: inverse, center, middle 
+name: pib
+
+
+## PRODUTO INTERNO BRUTO </br> (PIB)
+
+
+---
+<div style="text-align: justify">
+
+
+## PRODUTO INTERNO BRUTO (PIB)
+
+  ---
+
+- O conceito de **Produto Interno Bruto (PIB)** é largamente comentado no nosso dia a dia e, como se
+pode esperar, está intimamente associado ao conceito de **Produto Agregado**. Antes de realizar esta
+associação é necessário compreender dois conceitos adicionais.
+
+
+---
+<div style="text-align: justify">
+
+
+## PRODUTO INTERNO BRUTO (PIB)
+
+  ---
+
+
+  - **Residentes**: Território geográfico em que o interesse econômico do agente é predominante (por
+  exemplo, uma empresa cuja matriz é brasileira e, além disso, opera dentro do território nacional 
+  é considerada residente no Brasil);
+  
+  - **Não Residentes**: Território geográfico em que o interesse econômico não é predominante (por
+  exemplo, uma empresa brasileira cuja matriz é brasileira e, além disso, possui uma filial operando 
+  em outro país é considerada residente no Brasil).
+  
+  
+---
+<div style="text-align: justify">
+
+
+## PRODUTO INTERNO BRUTO (PIB)
+
+  ---
+
+- Assim, o **Produto Interno Bruto** corresponde a uma **abordagem do cálculo do produto agregado** em 
+que não são discriminados quais os fatores de produção residentes e quais os fatores de produção não 
+residentes (**o foco está no território nacional**);
+
+
+- Obviamente, é chamado **interno** pois o **valor agregado foi gerado por fatores de produção em 
+operação no território brasileiro** (sem ser necessariamente de brasileiros, isto é, sem ser de 
+residentes). 
+
+
+---
+<div style="text-align: justify">
+
+
+## PRODUTO INTERNO BRUTO (PIB)
+
+  ---
+
+
+- Por seu turno, o **Produto Nacional Bruto** (mais chamado de **Renda Nacional Bruta**) corresponde 
+a uma abordagem do cálculo do produto agregado em que são discriminados quais os fatores de produção
+residentes e quais os fatores de produção não residentes;
+
+
+- Neste caso, é considerado apenas os fatores de produção de residentes, mesmo que estes fatores de 
+produção não estejam operando no Brasil.
+
+
+---
+<div style="text-align: justify">
+
+
+## PRODUTO INTERNO BRUTO (PIB)
+
+  ---
+
+
+```{r , results = 'asis', echo = F, warning = F, message = F, error = F, fig.align ='center', out.width = '100%'}
+
+
+library(magrittr)
+
+
+library(kableExtra)
+
+
+cronograma <- data.frame(
+  
+  a = c('FOCO', 'FOCO'),
+  
+  b = c('Considera todos os fatores de produção em operação no território nacional', 
+        
+        'Portanto, não leva em consideração a residência'),
+  
+  c = c('Considera apenas os fatores de produção de residentes em operação', 
+        
+        'Portanto, não levam em consideração se operam no território nacional'))
+
+knitr::kable(cronograma, 
+             
+             escape = FALSE,
+    
+             format = 'html',
+             
+             col.names = c('',
+                           
+                           'PRODUTO INTERNO BRUTO', 
+                           
+                           'PRODUTO NACIONAL BRUTO'),
+             
+             align = c('l', 'l')) %>%
+  
+  kable_styling(bootstrap_options = 'striped')
+  
+
+```
+
+  
+---
+class: inverse, center, middle 
+name: fcr
+
+
+## FLUXO CIRCULAR DA RENDA 
+
+
+---
+<div style="text-align: justify">
+
+
+## FLUXO CIRCULAR DA RENDA
+
+  ---
+
+
+- O **Fluxo Circular da Renda** é um instrumento didático complementar aos 
+conceitos básicos apresentados na apresentação da identidade macroeconômica
+desta aula;
+
+
+- Além de apresentar as relações acima, são adicionadas informações sobre a 
+participação de alguns setores institucionais;
+
+
+- **Fluxo Circular da Renda: Diagrama que possui o objetivo de identificar quais
+as principais transações econômicas (que foram originadas no processo de 
+produção) realizadas entre os setores institucionais.**
+
+---
+<div style="text-align: justify">
+
+
+## FLUXO CIRCULAR DA RENDA 
+
+  ---
+
+- Mais uma vez, o conceito de Fluxo Circular da Renda não se explica por si só. Torna-se necessário 
+realizar algumas definições adicionais. Quais sejam:
+
+
+- **Unidade Institucional**: Unidade econômica que pode contrair ativos e/ou passivos ao 
+realizar alguma atividade econômica e que também pode realizar transações com outras unidades 
+institucionais;
+
+
+- **Setor Institucional**: Agrupamento de unidades institucionais que possuem o mesmo comportamento, 
+função e objetivos econômicos.
+
+
+
+---
+<div style="text-align: justify">
+
+
+## FLUXO CIRCULAR DA RENDA 
+
+  ---
+
+- Por uma classificação mais teórica, existem 4 setores institucionais:
+
+
+- **FAMÍLIAS**: são indivíduos (ou grupos de indivíduos) que obtêm a sua renda sem serem 
+inscritas no Cadastro Nacional de Pessoa Jurídica (CNPJ), ou seja, são majoritariamente pessoas 
+físicas. Em geral, são os assalariados, trabalhadores autônomos;
+
+
+
+- **EMPRESAS**: As empresas são unidades legais (a existência é reconhecida em lei, 
+independente dos seus controladores), ou seja, são pessoas jurídicas que desempenham a atividade
+de produção de bens e serviços no mercado. Isto é, deve haver uma prática de preços que seja 
+significativa.
+
+
+---
+<div style="text-align: justify">
+
+
+## FLUXO CIRCULAR DA RENDA 
+
+  ---
+
+
+- **GOVERNO**: Instituições públicas que desempenham a atividade de produção de bens e serviços não 
+mercantis voltados para à coletividade e/ou voltados à repatição da renda e do patrimônio. São bens 
+e serviços não mercantis aqueles que são prestados e/ou consumidos de forma gratuita ou semigratuita
+e, neste sentido, a principal fonte de obtenção de renda destas instituições consite no pagamento 
+obrigatório de tributos efetuado por todos os outros setores institucionais;
+
+---
+<div style="text-align: justify">
+
+
+## FLUXO CIRCULAR DA RENDA 
+
+  ---
+
+- **RESTO DO MUNDO**: Todos os setores institucionais podem ser nacionais (chamados de residentes) 
+ou estrangeiros (chamados de não residentes), estes setores institucionais impactam nas atividades 
+produtivas um dos outros e realizam transações entre si. É chamado de “resto do mundo” pois não 
+importa a nacionalidade dos estrangeiros (não residentes), basta saber que não são nacionais 
+(residentes)
+
+---
+
+## FLUXO CIRCULAR DA RENDA 
+
+  ---
+
+$$Y = C + I + G + X - M$$
+</br> 
+
+.pull-left[
+$Y$: Produto Interno Bruto;
+  
+$C$: Consumo das Famílias;
+  
+$I$: Investimento das Empresas;
+]
+
+.pull-right[
+$G$: Gastos do Governo;
+
+$X$: Exportações;
+  
+$M$: Importações.
+]
+
+---
+## O BRASIL EM PERSPECTIVA
+
+  ---
+
+```{r}
+# VISUALIZAÇÃO DOS DADOS:
+agregados_macroeconomicos_grafico <- agregados_macroeconomicos %>% 
+  dplyr::mutate(Componente = as.factor(Componente)) %>% 
+  ggplot2::ggplot() +
+  ggplot2::geom_line(mapping = ggplot2::aes(x = Data, 
+                                            y = Valor, 
+                                            color = Componente),
+                     size = 0.5) +
+  ggplot2::geom_point(mapping = ggplot2::aes(x = Data, 
+                                             y = Valor, 
+                                             color = Componente),
+                      size = 0.75) +
+  ggplot2::scale_colour_manual(values = c('#1c5253','#ff8848',
+                                          '#7e7caa','#df90a9',
+                                          '#00aab1','#73bb75')) + 
+  ggplot2::scale_x_date(name = waiver()) +
+  ggplot2::labs(title = 'Agregados Macroeconômicos',
+                colour = '',
+                x = 'Trimestres',
+                y = 'Índice (média de 1995 = 100)') +
+  xaringanthemer::theme_xaringan(text_font_size = 15,
+                                 title_font_size = 20) 
+
+agregados_macroeconomicos_grafico <- plotly::ggplotly(agregados_macroeconomicos_grafico) 
+
+
+widgetframe::frameWidget(agregados_macroeconomicos_grafico, 
+                         width = '100%', 
+                         height = '100%')
+
+```
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
